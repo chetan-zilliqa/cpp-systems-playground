@@ -25,3 +25,15 @@ target_link_libraries(kv_store_demo
         common
 )
 
+# Unit tests
+add_executable(kv_store_tests
+    tests/kv_store_tests.cpp
+)
+
+target_link_libraries(kv_store_tests
+    PRIVATE
+        kv_store_lib
+        common
+)
+
+add_test(NAME kv_store_tests COMMAND kv_store_tests)
