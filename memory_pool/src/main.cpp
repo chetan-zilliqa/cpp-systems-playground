@@ -2,6 +2,12 @@
 #include "common/logging.hpp"
 #include "memory_pool/fixed_block_memory_pool.hpp"
 
+/*
+memory pool:
+improves spatial locality as linkedlist nodes are allocated continguously
+rather than random address which reduces cache misses.
+makes pointer-based structures competitive
+*/
 using memory_pool::FixedBlockMemoryPool;
 
 struct Node {
@@ -25,7 +31,9 @@ int main() {
 
     Node* head = nullptr;
 
-    for (int i = 0; i < 5; ++i) {
+    // If we add more than 8 nodes, the program would crash as we allocated
+    //space for 8 nodes
+    for (int i = 0; i < 8; ++i) {
         LOG_DEBUG("Allocating node " + std::to_string(i));
         void* raw = pool.allocate();
         auto* node = new (raw) Node{i, head};

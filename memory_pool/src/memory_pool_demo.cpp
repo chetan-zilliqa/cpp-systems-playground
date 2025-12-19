@@ -25,7 +25,7 @@ int main() {
 
     Node* head = nullptr;
 
-    for (int i = 0; i < 5; ++i) {
+    for (int i = 0; i < 98; ++i) {
         LOG_DEBUG("Allocating node " + std::to_string(i));
         void* raw = pool.allocate();
         auto* node = new (raw) Node{i, head};
