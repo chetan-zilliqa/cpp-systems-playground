@@ -1,73 +1,80 @@
+# 🚀 C++ Systems Playground
 
-# 📦 C++ Systems Playground
+A hands-on C++ monorepo designed to practice **systems programming fundamentals**, including:
 
-A hands-on C++ monorepo to practice **systems programming, memory allocators, and key-value store design**.
+* custom memory allocation
+* in-memory data structures
+* modular CMake builds
+* concurrency
+* logging
+* unit testing
 
-This repository contains multiple small but realistic systems projects that build on each other:
+This repository contains multiple small but realistic projects that build on each other:
 
-* **memory_pool** — a fixed-block custom allocator
-* **kv_store** — an in-memory key–value store using the memory pool
-* **common** — shared utilities (e.g., lightweight logging)
-
-The goal is to simulate real-world C++ development workflows:
-
-* modular design
-* reusable libraries
-* out-of-source CMake builds
-* clean separation of headers vs. sources
-* linkage between sub-projects
-* debugging + iterative development
+| Module         | Description                                         |
+| -------------- | --------------------------------------------------- |
+| `common/`      | Shared utilities (logging)                          |
+| `memory_pool/` | Fixed-block allocator                               |
+| `kv_store/`    | In-memory key/value store backed by the memory pool |
 
 ---
 
-## 🗂 Repository Structure
+## 🧩 Monorepo Structure
 
 ```
 cpp-systems-playground/
-├── CMakeLists.txt          # root cmake project
-├── common/                 # shared utilities
-│   ├── include/common/
-│   │   └── logging.hpp
-│   └── CMakeLists.txt
-├── memory_pool/            # fixed-block memory pool library + demo
+│
+├── CMakeLists.txt               # root cmake project
+│
+├── common/                      # shared utilities module
+│   ├── include/common/logging.hpp
+│   ├── tests/common_logging_tests.cpp
+│   └── README.md
+│
+├── memory_pool/                 # memory allocator module
 │   ├── include/memory_pool/fixed_block_memory_pool.hpp
 │   ├── src/main.cpp
-│   └── CMakeLists.txt
-├── kv_store/               # key-value store backed by memory pool
+│   ├── tests/memory_pool_tests.cpp
+│   └── README.md
+│
+├── kv_store/                    # key-value store module
 │   ├── include/kv_store/kv_store.hpp
 │   ├── src/kv_store.cpp
 │   ├── src/main.cpp
-│   └── CMakeLists.txt
-└── build/                  # CMake build output (ignored by git)
+│   ├── tests/kv_store_tests.cpp
+│   └── README.md
+│
+└── build/                       # cmake build directory (ignored by git)
 ```
 
-Each subproject exposes a CMake library target:
+Each module defines:
 
-| Project     | Target Name       | Type       |
-| ----------- | ----------------- | ---------- |
-| common      | `common`          | INTERFACE  |
-| memory_pool | `memory_pool_lib` | INTERFACE  |
-| kv_store    | `kv_store_lib`    | STATIC/OBJ |
-
-Demo executables:
-
-* `memory_pool_demo`
-* `kv_store_demo`
+* a library target
+* a demo executable
+* a test executable
 
 ---
 
-## 🚀 Build & Run
+## ⚙️ Build Instructions
 
-### Configure (run from repo root)
+### Configure (from root)
 
 ```bash
 cmake -S . -B build
 ```
 
-### Build everything
+### Build all modules
 
 ```bash
 cmake --build build -j
+```
+
+### Build a specific target
+
+```bash
+cmake --build build --target memory_pool_demo -j
+cmake --build build --target kv_store_demo -j
+cmake --build build --target common_tests -j
 ```
 
 ### Run demos
@@ -79,79 +86,74 @@ cmake --build build -j
 
 ---
 
-## 🧱 Components
+## 🧪 Running Unit Tests
 
-### 🧩 `memory_pool/`
+Tests are integrated using **CTest**.
 
-A fixed-block allocator:
+```bash
+cd build
+ctest --output-on-failure
+```
 
-* allocates a pool of N fixed-size blocks
-* supports `allocate()` / `deallocate()`
-* uses placement new
-* free list implemented via pointer-chaining
+Or run individually:
 
-Goals:
+```bash
+./build/common/common_tests
+./build/memory_pool/memory_pool_tests
+./build/kv_store/kv_store_tests
+```
 
-* understand manual memory control
-* observe behavior via pointer addresses
-* contrast with `new` / `delete` overhead
-
-### 🗄 `kv_store/`
-
-An in-memory KV store:
-
-* std::hash-based bucket indexing
-* separate chaining via linked lists
-* custom allocation from the memory pool
-* thread-safe reads/writes via shared_mutex
-* logging instrumentation
-
-This demonstrates:
-
-* integration between modules
-* allocator-aware data structures
-* synchronization primitives
-
-### 🧰 `common/`
-
-Currently contains:
-
-* lightweight logging with levels (DEBUG, INFO, WARN, ERROR)
-* can be expanded for utilities or configuration helpers
+The testing design is intentionally simple: assert-based, fast, and dependency-free.
 
 ---
 
-## 🧩 Planned Extensions
+## 🧱 Concepts Practiced
 
-Some potential next steps:
+This monorepo will help you sharpen:
 
-* add unit tests (GoogleTest or Catch2)
-* add a block allocator benchmark vs `new`
-* add an LRU cache layer over kv_store
-* make pool dynamically growable
-* implement thread-local allocators
-* introduce exceptions vs noexcept policies
-* custom allocators for `std::vector`
+* memory management & allocators
+* hash table internals
+* placement new & destructor control
+* free-list design
+* thread safety (shared_mutex / unique_lock)
+* modular CMake structures
+* linking libraries
+* unit test integration
+* logging patterns
 
 ---
 
+## 🚧 Future Enhancements
 
-## 💬 Contributing / Customizing
+Potential next modules:
 
-Feel free to:
+* LRU cache using `kv_store`
+* benchmark suite
+* `std::pmr` compatible allocator
+* lock-free pool
+* persistent storage backend
+* custom serialization
+* thread-local allocators
 
-* rename demo binaries
-* convert memory_pool to a polymorphic allocator
-* replace `std::vector` buckets with open addressing
-* add benchmarks
-* integrate sanitizer builds
-* add CI with GitHub actions
+---
+
+## 🤝 Contributing
+
+This project welcomes:
+
+* refactors
+* improved logging
+* benchmarks
+* optimizations
+* tests
+* additional modules
+
+It is a playground — break things, learn, rebuild.
 
 ---
 
 ## 📄 License
 
-MIT — free to learn, modify, and extend.
+MIT — free to modify and learn from.
 
 ---
-
