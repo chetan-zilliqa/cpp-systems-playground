@@ -31,12 +31,12 @@ cpp-systems-playground/
 │   └── CMakeLists.txt
 ├── memory_pool/            # fixed-block memory pool library + demo
 │   ├── include/memory_pool/fixed_block_memory_pool.hpp
-│   ├── src/memory_pool_demo.cpp
+│   ├── src/main.cpp
 │   └── CMakeLists.txt
 ├── kv_store/               # key-value store backed by memory pool
 │   ├── include/kv_store/kv_store.hpp
 │   ├── src/kv_store.cpp
-│   ├── src/kv_store_demo.cpp
+│   ├── src/main.cpp
 │   └── CMakeLists.txt
 └── build/                  # CMake build output (ignored by git)
 ```
@@ -154,3 +154,4 @@ Feel free to:
 MIT — free to learn, modify, and extend.
 
 ---
+
