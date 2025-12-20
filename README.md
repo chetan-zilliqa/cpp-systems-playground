@@ -107,22 +107,6 @@ The testing design is intentionally simple: assert-based, fast, and dependency-f
 
 ---
 
-## 🧱 Concepts Practiced
-
-This monorepo will help you sharpen:
-
-* memory management & allocators
-* hash table internals
-* placement new & destructor control
-* free-list design
-* thread safety (shared_mutex / unique_lock)
-* modular CMake structures
-* linking libraries
-* unit test integration
-* logging patterns
-
----
-
 ## 🚧 Future Enhancements
 
 Potential next modules:
@@ -157,3 +141,4 @@ It is a playground — break things, learn, rebuild.
 MIT — free to modify and learn from.
 
 ---
+
