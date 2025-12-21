@@ -10,4 +10,4 @@ enable_testing()
 add_subdirectory(common)
 add_subdirectory(memory_pool)
 add_subdirectory(kv_store)
-
+add_subdirectory(kv_store_optimized)
