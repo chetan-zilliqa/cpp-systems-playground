@@ -5,36 +5,40 @@ A hands-on C++ monorepo designed to practice **systems programming fundamentals*
 * custom memory allocation
 * in-memory data structures
 * hash tables (chaining + open addressing)
-* caching
+* caching & eviction
 * RAII + smart pointers
+* lock-free concurrency
+* thread pools & work stealing
 * modular CMake builds
-* concurrency
 * logging
 * unit testing
 
-This repository contains multiple realistic projects that build on each other — moving from memory allocators to hash maps, KV stores, caching, and pointer semantics.
+This repository contains multiple realistic projects that build on each other — progressing from memory allocators → hash maps → KV stores → caching → smart pointers → concurrency.
 
 ---
 
 ## 📦 Modules Overview
 
-| Module               | Description                                                                   |
-| -------------------- | ----------------------------------------------------------------------------- |
-| `common/`            | Shared utilities (logging)                                                    |
-| `memory_pool/`       | Fixed-block allocator for efficient small allocations                         |
-| `hash_map/`          | Custom separate-chaining HashMap (replaces `std::unordered_map`)              |
-| `kv_store_chaining/` | Key/value store using chaining + memory_pool                                  |
-| `kv_store_linear/`   | Key/value store using open addressing + inline fixed buffers (cache-friendly) |
-| `lru_cache/`         | Modern LRU cache built using `hash_map` + `std::list`                         |
-| `in_memory_redis/`   | Redis-style store with TTL, prefix queries & background sweeper               |
-| `smart_pointers/`    | Custom RAII smart pointers (`UniquePtr`, `SharedPtr`, `WeakPtr`)              |
+| Module               | Description                                                            |
+| -------------------- | ---------------------------------------------------------------------- |
+| `common/`            | Shared utilities (logging)                                             |
+| `memory_pool/`       | Fixed-block allocator for efficient small allocations                  |
+| `hash_map/`          | Custom separate-chaining HashMap (replaces `std::unordered_map`)       |
+| `kv_store_chaining/` | KV store using chaining + memory_pool                                  |
+| `kv_store_linear/`   | KV store using open addressing + fixed-inline buffers (cache-friendly) |
+| `lru_cache/`         | Modern LRU cache using `hash_map` + `std::list`                        |
+| `in_memory_redis/`   | Redis-style store with TTL, prefix lookup, background sweeper          |
+| `smart_pointers/`    | Custom RAII pointers (`UniquePtr`, `SharedPtr`, `WeakPtr`)             |
+| `lock_free_queue/`   | MPMC lock-free queue using atomic CAS (Michael–Scott style)            |
+| `thread_pool/`       | Work-stealing thread pool with per-thread task queues & futures        |
 
 Each module:
 
-* is self-contained
+* is standalone
 * exports a library target
-* has a demo
+* has a demo executable
 * has unit tests
+* avoids dependencies except STL / gtest
 
 ---
 
@@ -43,30 +47,36 @@ Each module:
 ```
 cpp-systems-playground/
 │
-├── CMakeLists.txt
-│
-├── common/                     
-├── memory_pool/                
+├── common/
+├── memory_pool/
 ├── hash_map/
 │
-├── kv_store_chaining/          # chaining + memory pool
-├── kv_store_linear/            # open addressing / linear probing
+├── kv_store_chaining/
+├── kv_store_linear/
 │
 ├── lru_cache/
-│
 ├── in_memory_redis/
 │
 ├── smart_pointers/
+├── lock_free_queue/
+├── thread_pool/
 │
 └── build/
 ```
 
-### Differences between KV store modules:
+### KV Store Differences
 
-| Module              | Collision Handling | Allocation Model | Value Storage     | Best For            |
-| ------------------- | ------------------ | ---------------- | ----------------- | ------------------- |
-| `kv_store_chaining` | Separate chaining  | memory pool      | dynamic           | flexible workloads  |
-| `kv_store_linear`   | Open addressing    | contiguous array | fixed-size inline | high cache locality |
+| Module         | Collision Handling | Allocation | Value Storage | Strength               |
+| -------------- | ------------------ | ---------- | ------------- | ---------------------- |
+| chaining       | separate chaining  | pool       | dynamic       | flexible & simple      |
+| linear probing | open addressing    | contiguous | fixed inline  | fast & cache-efficient |
+
+### Concurrency Modules
+
+| Module            | Focus / Concept                             |
+| ----------------- | ------------------------------------------- |
+| `lock_free_queue` | atomic CAS, ABA avoidance, MPMC queues      |
+| `thread_pool`     | work stealing + futures + per-thread queues |
 
 ---
 
@@ -78,18 +88,18 @@ Configure:
 cmake -S . -B build
 ```
 
-Build all:
+Build everything:
 
 ```bash
 cmake --build build -j
 ```
 
-Build a specific module (examples):
+Sample specific targets:
 
 ```bash
-cmake --build build --target kv_store_chaining_demo
-cmake --build build --target kv_store_linear_demo
-cmake --build build --target smart_pointers_demo
+cmake --build build --target lock_free_queue_demo
+cmake --build build --target thread_pool_demo
+cmake --build build --target in_memory_redis_demo
 ```
 
 ---
@@ -97,9 +107,14 @@ cmake --build build --target smart_pointers_demo
 ## 🔥 Run Demos
 
 ```bash
+./build/lock_free_queue/lock_free_queue_demo
+./build/thread_pool/work_stealing_thread_pool_demo
+```
+
+Also available:
+
+```bash
 ./build/hash_map/hash_map_demo
-./build/kv_store_chaining/kv_store_chaining_demo
-./build/kv_store_linear/kv_store_linear_demo
 ./build/lru_cache/lru_cache_demo
 ./build/smart_pointers/smart_pointers_demo
 ```
@@ -108,7 +123,7 @@ cmake --build build --target smart_pointers_demo
 
 ## 🧪 Unit Testing
 
-Run all tests:
+Run all:
 
 ```bash
 cd build
@@ -118,46 +133,74 @@ ctest --output-on-failure
 Examples:
 
 ```bash
+./build/lock_free_queue/lock_free_queue_tests
+./build/thread_pool/thread_pool_tests
 ./build/kv_store_linear/kv_store_linear_tests
-./build/kv_store_chaining/kv_store_chaining_tests
-./build/smart_pointers/smart_pointers_tests
 ```
-
-Tests are small, assert-driven, and dependency-free (except Redis tests may use gtest).
 
 ---
 
+## 🌟 Learning Outcomes
+
+By completing this repo, you’ll understand:
+
+### Data Structures
+
+* hash maps (chaining + open addressing)
+* memory pool allocators
+* KV stores
+* LRU caching
+
+### Concurrency
+
+* lock-free MPMC queues
+* thread pools & futures
+* work-stealing schedulers
+* condition variable wake/sleep
+* atomic CAS operations
+
+### Modern C++ Concepts
+
+* RAII + ownership models
+* templates + type traits
+* `std::invoke_result_t`
+* `std::function`, `std::packaged_task`
+* orphan avoidance & move semantics
+
+---
 
 ## 🚧 Future Enhancements
 
-Next possible modules:
+Potential next modules:
 
-* thread-safe `hash_map` & `lru_cache`
-* robin-hood / quadratic probing version of `kv_store_linear`
-* PMR-backed allocators for all structures
-* persistence layer / WAL for Redis
-* lock-free queue or stack
-* bloom filter for key existence
-* benchmarking suite
+* robin-hood hashing
+* PMR-optimized structures
+* persistent backed Redis (WAL)
+* parallel sort / map-reduce
+* Lock-free stack
+* actor runtime on thread pool
+* benchmark suite
 
 ---
 
 ## 🤝 Contributing
 
-Contributions welcome:
+Open to:
 
-* performance optimizations
-* lock-free variations
-* testing & benchmarking
-* more data structures
-* allocator experiments
+* performance improvements
+* lock-free structures
+* thread pool extensions
+* bug reports & tests
+* benchmark additions
+* more allocator patterns
 
-This playground is a space to explore, break, optimize, and learn.
+This is a playground — explore, break, optimize, and learn.
 
 ---
 
 ## 📄 License
 
-MIT — free to use, modify, and learn from.
+MIT — free to use and modify.
 
 ---
+
