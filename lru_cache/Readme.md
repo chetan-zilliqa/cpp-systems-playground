@@ -1,27 +1,29 @@
 # LRU Cache (C++)
 
 `lru_cache` is a modern, generic implementation of a **Least Recently Used (LRU)** cache.
+
 It provides constant-time lookup and eviction using an efficient combination of:
 
 * **std::list** for O(1) LRU ordering
-* **std::unordered_map** for O(1) key lookup
+* **our own HashMap implementation** for O(1) key lookup (instead of `std::unordered_map`)
 
-This project is part of the **cpp-systems-playground** repository and demonstrates a production-grade LRU cache design suitable for systems programming & high-performance applications.
+This module is part of the **cpp-systems-playground** repository, and demonstrates a production-grade LRU cache design that combines custom hash-table internals with a well-known eviction policy.
 
 ---
 
 ## ✨ Features
 
-| Feature            | Description                                            |
-| ------------------ | ------------------------------------------------------ |
-| `put(key, value)`  | Insert/update a key-value pair.                        |
-| `get(key)`         | Returns value if present and refreshes its LRU status. |
-| O(1) operations    | `get` and `put` run in constant time.                  |
-| Automatic eviction | Oldest key evicted when capacity is exceeded.          |
-| Generic            | Works with arbitrary `Key` and `Value` types.          |
-| Move-aware         | Supports move semantics.                               |
-| Optional return    | Uses `std::optional` for cache miss.                   |
-| Clear + erase      | Remove individual keys or reset whole cache.           |
+| Feature            | Description                                              |
+| ------------------ | -------------------------------------------------------- |
+| `put(key, value)`  | Insert/update a key-value pair.                          |
+| `get(key)`         | Returns value if present and refreshes its LRU status.   |
+| O(1) operations    | `get` and `put` run in constant time.                    |
+| Custom HashMap     | Uses our own hash-table instead of `std::unordered_map`. |
+| Automatic eviction | Oldest key evicted when capacity is exceeded.            |
+| Generic            | Works with arbitrary `Key` and `Value` types.            |
+| Move-aware         | Supports move semantics.                                 |
+| Optional return    | Uses `std::optional` for cache miss.                     |
+| Clear + erase      | Remove individual keys or reset whole cache.             |
 
 ---
 
@@ -31,21 +33,24 @@ The core data structures:
 
 * `std::list<std::pair<Key,Value>>`
 
-  * Front: Most Recently Used (MRU)
-  * Back: Least Recently Used (LRU)
+  * Front → Most Recently Used (MRU)
+  * Back → Least Recently Used (LRU)
 
-* `std::unordered_map<Key, ListIterator>`
+* `hash_map::HashMap<Key, ListIterator>`
 
-  * Direct iterator access into the list
+  * Our own separate-chaining hash table
+  * Provides O(1) lookup, insert, and erase
+  * Lets us decouple from `std::unordered_map`
 
-Eviction strategy:
+### Eviction strategy
 
 * On `put()`:
 
   * If key exists → update + move to MRU
-  * Else if at capacity → remove LRU (list back)
+  * Else if full → evict back (LRU node)
+  * Insert new node at front (MRU)
 
-Time complexity:
+### Complexity
 
 | Operation | Complexity |
 | --------- | ---------- |
@@ -53,6 +58,8 @@ Time complexity:
 | `put()`   | O(1)       |
 | `erase()` | O(1)       |
 | `clear()` | O(n)       |
+
+(Assuming the HashMap load factor remains controlled)
 
 ---
 
@@ -62,19 +69,21 @@ Time complexity:
 lru_cache/
   include/
     lru_cache/
-      lru_cache.hpp
+      lru_cache.hpp     # uses our custom HashMap
   src/
-    main.cpp        # Demo usage
+    main.cpp            # demo usage
   tests/
-    lru_cache_tests.cpp
+    lru_cache_tests.cpp # unit tests
   CMakeLists.txt
 ```
+
+`hash_map/` module lives alongside and is linked to this library.
 
 ---
 
 ## 🚀 Build & Run
 
-From the repository root:
+From repo root:
 
 ```bash
 mkdir -p build
@@ -82,16 +91,6 @@ cd build
 cmake ..
 cmake --build . --target lru_cache_demo
 ./lru_cache_demo
-```
-
-Expected output:
-
-```
-Get 1: 10
-Get 2: 20
-Get 3: <miss>
-Get 4: 40
-...
 ```
 
 ---
@@ -107,7 +106,7 @@ int main() {
     cache.put(1, "one");
     cache.put(2, "two");
 
-    auto v = cache.get(1); // hits + refresh LRU
+    auto v = cache.get(1); // MRU
     cache.put(3, "three"); // evicts key 2
 
     assert(!cache.get(2).has_value());
@@ -119,57 +118,55 @@ int main() {
 
 ## 🧪 Tests
 
-Tests are located in:
+Located in:
 
 ```
 lru_cache/tests/lru_cache_tests.cpp
 ```
 
-Run via:
+To run:
 
 ```bash
 ctest --output-on-failure
 ```
 
-Includes:
+Covers:
 
 * basic get/put
 * LRU eviction correctness
-* update/move-to-front
+* update move-to-MRU
 * erase & clear
 * contains()
-* exception on zero capacity
+* zero-capacity exception
 
 ---
 
 ## 🎯 Use Cases
 
-LRU caches are widely used in:
+LRU caching fits well in:
 
-* database/page caching
-* memory-constrained embedded systems
-* web caching / proxy layers
-* compiler runtime & JIT memoization
-* block device caching
-* DNS / ARP caching
+* in-memory database caching
+* filesystems & block caching
+* compiler optimization caches
+* virtual memory paging
+* network layer caching (DNS, ARP)
+* embedded memory-bounded systems
 
 ---
 
 ## 🔥 Possible Enhancements
 
-Optional future directions:
-
 * thread-safe wrapper
-* TTL-based eviction (LRU + expiration)
-* shard-based striping
-* LFU / ARC hybrid policies
-* custom allocator support
+* TTL + LRU hybrid eviction
+* striped hashing for lock sharding
+* LFU/LRU or adaptive replacement cache
+* custom allocators / pmr
+* serialization + persistence
 
 ---
 
-
 ## 📜 License
 
-MIT (or same as parent repo)
+MIT (or parent repo license)
 
 ---
