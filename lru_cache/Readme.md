@@ -1,4 +1,4 @@
-# LRU Cache (C++17)
+# LRU Cache (C++)
 
 `lru_cache` is a modern, generic implementation of a **Least Recently Used (LRU)** cache.
 It provides constant-time lookup and eviction using an efficient combination of:
