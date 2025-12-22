@@ -34,9 +34,9 @@ lock_free_queue/
     lock_free_queue/
       spsc_queue.hpp
   src/
-    main.cpp
+    spsc_queue_demo.cpp
   tests/
-    lock_free_queue_tests.cpp
+    spsc_queue_tests.cpp
   CMakeLists.txt
 ```
 
@@ -105,7 +105,7 @@ Build and run:
 
 ```bash
 cmake --build build --target lock_free_queue_demo
-./build/lock_free_queue/lock_free_queue_demo
+./build/lock_free_queue/spsc_queue_demo
 ```
 
 Output (example):
@@ -135,7 +135,7 @@ ctest --output-on-failure
 Or:
 
 ```bash
-./build/lock_free_queue/lock_free_queue_tests
+./build/lock_free_queue/spsc_queue_tests
 ```
 
 ---
