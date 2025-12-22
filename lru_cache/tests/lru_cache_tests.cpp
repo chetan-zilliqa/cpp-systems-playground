@@ -2,7 +2,6 @@
 
 #include <cassert>
 #include <iostream>
-#include <stdexcept>
 #include <string>
 
 using lru::LRUCache;
@@ -16,11 +15,11 @@ static void test_basic_get_put()
 
     auto v1 = cache.get(1);
     auto v2 = cache.get(2);
+    auto v3 = cache.get(3);
 
-    assert(v1.has_value());
-    assert(v2.has_value());
-    assert(*v1 == 10);
-    assert(*v2 == 20);
+    assert(v1 && *v1 == 10);
+    assert(v2 && *v2 == 20);
+    assert(!v3.has_value());
     assert(cache.size() == 2);
 }
 
@@ -29,17 +28,18 @@ static void test_eviction_order()
     LRUCache<int, int> cache(2);
 
     cache.put(1, 10); // [1]
-    cache.put(2, 20); // [2,1] (2 MRU)
+    cache.put(2, 20); // [2,1] (2 MRU, 1 LRU)
 
-    // Access 1 -> makes 1 MRU, 2 LRU
+    // Access 1 -> [1,2] (1 MRU, 2 LRU)
     auto v1 = cache.get(1);
     assert(v1 && *v1 == 10);
 
-    cache.put(3, 30); // evict key 2
+    // Insert 3, should evict key 2
+    cache.put(3, 30);
 
-    auto m2 = cache.get(2);
-    auto g1 = cache.get(1);
-    auto g3 = cache.get(3);
+    auto m2 = cache.get(2); // miss
+    auto g1 = cache.get(1); // hit
+    auto g3 = cache.get(3); // hit
 
     assert(!m2.has_value());
     assert(g1 && *g1 == 10);
@@ -54,18 +54,19 @@ static void test_update_existing()
     cache.put(1, 10);
     cache.put(2, 20);
 
-    cache.put(1, 100); // update + move to MRU
-
+    // Update value and ensure it stays
+    cache.put(1, 100);
     auto v1 = cache.get(1);
     auto v2 = cache.get(2);
 
     assert(v1 && *v1 == 100);
     assert(v2 && *v2 == 20);
 
-    // Access 2 so it becomes MRU, 1 becomes LRU
-    (void)cache.get(2);
+    // Access 2 so it becomes MRU
+    (void)cache.get(2); // 2 MRU, 1 LRU
 
-    cache.put(3, 30); // evicts 1
+    // Now inserting 3 should evict 1
+    cache.put(3, 30);
 
     auto m1 = cache.get(1);
     auto g2 = cache.get(2);
@@ -85,17 +86,21 @@ static void test_erase_and_clear()
     cache.put("c", 3);
 
     assert(cache.size() == 3);
-    assert(cache.erase("b") == true);
-    assert(cache.size() == 2);
-    assert(!cache.get("b").has_value());
+    assert(cache.contains("b"));
 
-    // Erasing non-existent key should return false
-    assert(cache.erase("b") == false);
+    bool erased = cache.erase("b");
+    assert(erased);
+    assert(!cache.contains("b"));
+    assert(cache.size() == 2);
+
+    // Erase non-existent key
+    bool erased_again = cache.erase("b");
+    assert(!erased_again);
 
     cache.clear();
     assert(cache.size() == 0);
-    assert(!cache.get("a").has_value());
-    assert(!cache.get("c").has_value());
+    assert(!cache.contains("a"));
+    assert(!cache.contains("c"));
 }
 
 static void test_contains()

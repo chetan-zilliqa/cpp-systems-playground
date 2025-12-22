@@ -8,6 +8,12 @@ target_include_directories(lru_cache
         ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
+# hash_map is defined in hash_map/CMakeLists.txt
+target_link_libraries(lru_cache
+    INTERFACE
+        hash_map
+)
+
 # Demo executable
 add_executable(lru_cache_demo
     src/main.cpp
