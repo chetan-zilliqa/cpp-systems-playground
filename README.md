@@ -4,18 +4,33 @@ A hands-on C++ monorepo designed to practice **systems programming fundamentals*
 
 * custom memory allocation
 * in-memory data structures
+* hash tables & caching
 * modular CMake builds
 * concurrency
 * logging
 * unit testing
 
-This repository contains multiple small but realistic projects that build on each other:
+This repository contains multiple small but realistic projects that build on each other, moving from fundamentals (memory) to increasingly advanced data systems (KV stores & caches).
 
-| Module         | Description                                         |
-| -------------- | --------------------------------------------------- |
-| `common/`      | Shared utilities (logging)                          |
-| `memory_pool/` | Fixed-block allocator                               |
-| `kv_store/`    | In-memory key/value store backed by the memory pool |
+---
+
+## 📦 Modules Overview
+
+| Module             | Description                                                                            |
+| ------------------ | -------------------------------------------------------------------------------------- |
+| `common/`          | Shared utilities (logging)                                                             |
+| `memory_pool/`     | Fixed-block allocator for efficient small allocations                                  |
+| `hash_map/`        | Custom separate-chaining HashMap (replacing `std::unordered_map` in dependent modules) |
+| `kv_store/`        | In-memory key/value store backed by `memory_pool` (optimized, TTL support)             |
+| `lru_cache/`       | Modern LRU cache built using our custom `hash_map` + `std::list`                       |
+| `in_memory_redis/` | Redis-style key-value store with prefix query + TTL expiry + background sweeper        |
+
+Each module:
+
+* is self-contained
+* exports a library target
+* has a demo executable
+* has unit tests
 
 ---
 
@@ -24,34 +39,43 @@ This repository contains multiple small but realistic projects that build on eac
 ```
 cpp-systems-playground/
 │
-├── CMakeLists.txt               # root cmake project
+├── CMakeLists.txt              # root cmake project
 │
-├── common/                      # shared utilities module
+├── common/                     # logging, shared utilities
 │   ├── include/common/logging.hpp
 │   ├── tests/common_logging_tests.cpp
 │   └── README.md
 │
-├── memory_pool/                 # memory allocator module
+├── memory_pool/                # fixed-block allocator
 │   ├── include/memory_pool/fixed_block_memory_pool.hpp
-│   ├── src/main.cpp
 │   ├── tests/memory_pool_tests.cpp
 │   └── README.md
 │
-├── kv_store/                    # key-value store module
+├── hash_map/                   # custom hash table
+│   ├── include/hash_map/hash_map.hpp
+│   ├── src/main.cpp
+│   ├── tests/hash_map_tests.cpp
+│   └── README.md
+│
+├── kv_store/                   # memory-pool backed kv store
 │   ├── include/kv_store/kv_store.hpp
-│   ├── src/kv_store.cpp
 │   ├── src/main.cpp
 │   ├── tests/kv_store_tests.cpp
 │   └── README.md
 │
-└── build/                       # cmake build directory (ignored by git)
+├── lru_cache/                  # LRU cache using custom HashMap
+│   ├── include/lru_cache/lru_cache.hpp
+│   ├── src/main.cpp
+│   ├── tests/lru_cache_tests.cpp
+│   └── README.md
+│
+├── in_memory_redis/            # Redis-like TTL + prefix + sweeper
+│   ├── include/redis/...
+│   ├── tests/redis_tests.cpp
+│   └── README.md
+│
+└── build/                      # cmake build directory (ignored by git)
 ```
-
-Each module defines:
-
-* a library target
-* a demo executable
-* a test executable
 
 ---
 
@@ -63,76 +87,98 @@ Each module defines:
 cmake -S . -B build
 ```
 
-### Build all modules
+### Build all
 
 ```bash
 cmake --build build -j
 ```
 
-### Build a specific target
+### Build a specific component
 
 ```bash
-cmake --build build --target memory_pool_demo -j
-cmake --build build --target kv_store_demo -j
-cmake --build build --target common_tests -j
+cmake --build build --target hash_map_demo
+cmake --build build --target lru_cache_demo
+cmake --build build --target kv_store_demo
 ```
 
-### Run demos
+---
+
+## 🔥 Run Demos
 
 ```bash
-./build/memory_pool/memory_pool_demo
+./build/hash_map/hash_map_demo
+./build/lru_cache/lru_cache_demo
 ./build/kv_store/kv_store_demo
 ```
 
 ---
 
-## 🧪 Running Unit Tests
+## 🧪 Unit Testing
 
-Tests are integrated using **CTest**.
+Integrated using **CTest**.
 
 ```bash
 cd build
 ctest --output-on-failure
 ```
 
-Or run individually:
+Example individual runs:
 
 ```bash
-./build/common/common_tests
+./build/hash_map/hash_map_tests
+./build/lru_cache/lru_cache_tests
 ./build/memory_pool/memory_pool_tests
 ./build/kv_store/kv_store_tests
 ```
 
-The testing design is intentionally simple: assert-based, fast, and dependency-free.
+Tests use `assert()` and are dependency-free, fast, and deterministic.
+
+---
+
+## 🌟 Learning Goals
+
+This repository aims to teach:
+
+* designing custom containers (`HashMap`)
+* eviction & caching policies (`LRU`)
+* memory management (`fixed_block_memory_pool`)
+* building decentralized modules
+* clean CMake & modular dependencies
+* profiling and optimization mindset
+* testing systems components in isolation
+
+By combining them, we explore real-world systems challenges:
+
+**efficiency, cache locality, TTL expiry, eviction, custom allocators.**
 
 ---
 
 ## 🚧 Future Enhancements
 
-Potential next modules:
+Planned additions:
 
-* LRU cache using `kv_store`
-* benchmark suite
-* `std::pmr` compatible allocator
-* lock-free pool
-* persistent storage backend
-* custom serialization
-* thread-local allocators
+* PMR-compatible hashmap + LRU
+* lock-free memory pool variant
+* benchmark suite (Google Benchmark)
+* MVCC or snapshot support in KV
+* WAL/persistence layer for redis module
+* sharded hash map & LRU for multithreading
+* LFU/ARC adaptive cache policy
+* serialization & IPC transports
 
 ---
 
 ## 🤝 Contributing
 
-This project welcomes:
+Contributions welcome:
 
-* refactors
-* improved logging
-* benchmarks
-* optimizations
-* tests
-* additional modules
+* performance optimizations
+* tests & benchmarking
+* design improvements
+* memory allocator experiments
+* new modules (allocator, cache, db, etc.)
 
-It is a playground — break things, learn, rebuild.
+This is a playground — break things, learn, experiment.
 
 ---
 
@@ -141,4 +187,3 @@ It is a playground — break things, learn, rebuild.
 MIT — free to modify and learn from.
 
 ---
-
