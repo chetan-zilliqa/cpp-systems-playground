@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include "kvstore_optimized.hpp"
+#include "kv_store_linear/kvstore_linear.hpp"
 
 TEST(KVStoreOptimized, BasicInsertGet) {
     kv_opt::KVStoreOptimized store(128);

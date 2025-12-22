@@ -11,16 +11,16 @@
 
 namespace kv_store {
 
-class InMemoryKVStore {
+class InMemorykvstore_chaining {
 public:
     using Key   = std::string;
     using Value = std::string;
 
-    explicit InMemoryKVStore(std::size_t num_buckets = 16,
+    explicit InMemorykvstore_chaining(std::size_t num_buckets = 16,
                              std::size_t max_items   = 64);
 
-    InMemoryKVStore(const InMemoryKVStore&) = delete;
-    InMemoryKVStore& operator=(const InMemoryKVStore&) = delete;
+    InMemorykvstore_chaining(const InMemorykvstore_chaining&) = delete;
+    InMemorykvstore_chaining& operator=(const InMemorykvstore_chaining&) = delete;
 
     void put(const Key& key, const Value& value);
     std::optional<Value> get(const Key& key) const;

@@ -1,18 +1,18 @@
 #include <iostream>
 #include "common/logging.hpp"
-#include "kv_store/kv_store.hpp"
+#include "kv_store_chaining/kv_store_chaining.hpp"
 
-using kv_store::InMemoryKVStore;
+using kv_store::InMemorykvstore_chaining;
 
 int main() {
     common::set_log_level(common::LogLevel::Debug);
 
-    LOG_INFO("Starting InMemoryKVStore demo");
+    LOG_INFO("Starting InMemorykvstore_chaining demo");
 
-    InMemoryKVStore store(16, 32);
+    InMemorykvstore_chaining store(16, 32);
 
     std::cout << "========================================\n";
-    std::cout << "  InMemoryKVStore (pool-backed) demo\n";
+    std::cout << "  InMemorykvstore_chaining (pool-backed) demo\n";
     std::cout << "========================================\n";
 
     std::cout << "Putting some keys...\n";

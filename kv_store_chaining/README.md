@@ -46,7 +46,7 @@ kv_store/
 ### Create store
 
 ```cpp
-InMemoryKVStore store(num_buckets, max_items);
+InMemorykvstore_chaining store(num_buckets, max_items);
 ```
 
 ### Put
@@ -135,7 +135,7 @@ Example interaction:
 
 ```
 ========================================
-  InMemoryKVStore (pool-backed) demo
+  InMemorykvstore_chaining (pool-backed) demo
 ========================================
 Putting some keys...
 GET user:1 -> Alice

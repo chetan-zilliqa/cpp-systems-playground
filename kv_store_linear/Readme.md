@@ -1,6 +1,6 @@
 # KVStoreOptimized (Open Addressing KV Store)
 
-`kvstore_optimized` is a high-performance, fixed-capacity, in-memory key/value store that uses **open addressing** with **linear probing** instead of separate chaining.
+`kvstore_linear` is a high-performance, fixed-capacity, in-memory key/value store that uses **open addressing** with **linear probing** instead of separate chaining.
 
 This project focuses on:
 
@@ -39,13 +39,13 @@ Unlike the general `kv_store/` module (memory-pool backed, dynamic strings), thi
 ## 📁 Directory Structure
 
 ```
-kvstore_optimized/
+kvstore_linear/
   include/
-    kvstore_optimized.hpp
+    kvstore_linear.hpp
   src/
     main.cpp
   tests/
-    kvstore_optimized_tests.cpp
+    kvstore_linear_tests.cpp
   CMakeLists.txt
 ```
 
@@ -100,8 +100,8 @@ Simple, fast, reproducible.
 Build:
 
 ```bash
-cmake --build build --target kvstore_optimized_demo
-./build/kvstore_optimized/kvstore_optimized_demo
+cmake --build build --target kvstore_linear_demo
+./build/kvstore_linear/kvstore_linear_demo
 ```
 
 Sample output (for 50k inserts):
@@ -123,8 +123,8 @@ Store size (approx): 50000
 Tests use GoogleTest:
 
 ```bash
-cmake --build build --target kvstore_optimized_tests
-./build/kvstore_optimized/kvstore_optimized_tests
+cmake --build build --target kvstore_linear_tests
+./build/kvstore_linear/kvstore_linear_tests
 ```
 
 They cover:

@@ -1,11 +1,11 @@
-#include "kv_store/kv_store.hpp"
+#include "kv_store_chaining/kv_store_chaining.hpp"
 #include <new>
 #include <stdexcept>
 #include <mutex>
 
 namespace kv_store {
 
-InMemoryKVStore::InMemoryKVStore(std::size_t num_buckets,
+InMemorykvstore_chaining::InMemorykvstore_chaining(std::size_t num_buckets,
                                  std::size_t max_items)
     : buckets_(num_buckets, nullptr)
     , mutex_()
@@ -16,17 +16,17 @@ InMemoryKVStore::InMemoryKVStore(std::size_t num_buckets,
         throw std::invalid_argument("num_buckets must be > 0");
     }
 
-    LOG_INFO("InMemoryKVStore created with " +
+    LOG_INFO("InMemorykvstore_chaining created with " +
              std::to_string(num_buckets) + " buckets, capacity " +
              std::to_string(max_items) + " items");
 }
 
-std::size_t InMemoryKVStore::bucket_index(const Key& key) const {
+std::size_t InMemorykvstore_chaining::bucket_index(const Key& key) const {
     std::size_t h = std::hash<Key>{}(key);
     return h % buckets_.size();
 }
 
-void InMemoryKVStore::put(const Key& key, const Value& value) {
+void InMemorykvstore_chaining::put(const Key& key, const Value& value) {
     std::unique_lock lock(mutex_);
 
     const std::size_t idx = bucket_index(key);
@@ -47,8 +47,8 @@ void InMemoryKVStore::put(const Key& key, const Value& value) {
     ++size_;
 }
 
-std::optional<InMemoryKVStore::Value>
-InMemoryKVStore::get(const Key& key) const {
+std::optional<InMemorykvstore_chaining::Value>
+InMemorykvstore_chaining::get(const Key& key) const {
     std::shared_lock lock(mutex_);
 
     const std::size_t idx = bucket_index(key);
@@ -62,7 +62,7 @@ InMemoryKVStore::get(const Key& key) const {
     return std::nullopt;
 }
 
-bool InMemoryKVStore::erase(const Key& key) {
+bool InMemorykvstore_chaining::erase(const Key& key) {
     std::unique_lock lock(mutex_);
 
     const std::size_t idx = bucket_index(key);
@@ -87,16 +87,16 @@ bool InMemoryKVStore::erase(const Key& key) {
     return false;
 }
 
-bool InMemoryKVStore::contains(const Key& key) const {
+bool InMemorykvstore_chaining::contains(const Key& key) const {
     return static_cast<bool>(get(key));
 }
 
-std::size_t InMemoryKVStore::size() const {
+std::size_t InMemorykvstore_chaining::size() const {
     std::shared_lock lock(mutex_);
     return size_;
 }
 
-void InMemoryKVStore::clear_nodes() {
+void InMemorykvstore_chaining::clear_nodes() {
     std::unique_lock lock(mutex_);
 
     for (Node*& head : buckets_) {

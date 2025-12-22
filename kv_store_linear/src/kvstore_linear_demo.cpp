@@ -2,7 +2,7 @@
 #include <string>
 #include <chrono>
 #include <vector>
-#include "kvstore_optimized.hpp"
+#include "kv_store_linear/kvstore_linear.hpp"
 
 int main() {
     using namespace std::chrono;

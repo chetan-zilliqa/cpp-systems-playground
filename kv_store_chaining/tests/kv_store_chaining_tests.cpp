@@ -1,11 +1,11 @@
 #include <cassert>
 #include <string>
-#include "kv_store/kv_store.hpp"
+#include "kv_store_chaining/kv_store_chaining.hpp"
 
-using kv_store::InMemoryKVStore;
+using kv_store::InMemorykvstore_chaining;
 
 int main() {
-    InMemoryKVStore store(8, 16);
+    InMemorykvstore_chaining store(8, 16);
 
     // Initially empty
     assert(store.size() == 0);
