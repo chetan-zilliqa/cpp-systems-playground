@@ -27,14 +27,14 @@ The purpose is educational: to practice combining custom allocators, data-struct
 ## 🗂 Directory Layout
 
 ```
-kv_store/
+kv_store_chaining/
 │
-├── include/kv_store/
-│   └── kv_store.hpp       # public interface + class definition
+├── include/kv_store_chaining/
+│   └── kv_store_chaining.hpp       # public interface + class definition
 │
 ├── src/
-│   ├── kv_store.cpp       # implementation
-│   └── kv_store_demo.cpp  # demo program
+│   ├── kv_store_chaining.cpp       # implementation
+│   └── kv_store_chaining_demo.cpp  # demo program
 │
 └── CMakeLists.txt         # library + demo target
 ```
@@ -128,7 +128,7 @@ This means:
 Run:
 
 ```bash
-./build/kv_store/kv_store_demo
+./build/kv_store_chaining/kv_store_chaining_demo
 ```
 
 Example interaction:
@@ -151,7 +151,7 @@ Size = 2
 Library definition:
 
 ```cmake
-add_library(kv_store_lib src/kv_store.cpp)
+add_library(kv_store_lib src/kv_store_chaining.cpp)
 
 target_include_directories(kv_store_lib PUBLIC include)
 
@@ -165,8 +165,8 @@ target_link_libraries(kv_store_lib
 Executable demo:
 
 ```cmake
-add_executable(kv_store_demo src/kv_store_demo.cpp)
-target_link_libraries(kv_store_demo PRIVATE kv_store_lib)
+add_executable(kv_store_chaining_demo src/kv_store_chaining_demo.cpp)
+target_link_libraries(kv_store_chaining_demo PRIVATE kv_store_chaining_lib)
 ```
 
 ---

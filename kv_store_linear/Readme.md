@@ -1,4 +1,4 @@
-# KVStoreOptimized (Open Addressing KV Store)
+# KVStore_linear (Open Addressing KV Store)
 
 `kvstore_linear` is a high-performance, fixed-capacity, in-memory key/value store that uses **open addressing** with **linear probing** instead of separate chaining.
 
@@ -107,7 +107,7 @@ cmake --build build --target kvstore_linear_demo
 Sample output (for 50k inserts):
 
 ```
-KVStoreOptimized demo
+KVStore_linear demo
 Capacity: 100000, inserting: 50000 entries
 
 Bulk insert done in 12 ms
