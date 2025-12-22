@@ -23,4 +23,13 @@ add_executable(in_memory_redis_demo
 target_link_libraries(in_memory_redis_demo
     PRIVATE in_memory_redis
 )
+# Tests
+add_executable(in_memory_redis_tests
+    tests/redis_tests.cpp
+)
 
+target_link_libraries(in_memory_redis_tests
+    PRIVATE in_memory_redis
+)
+
+add_test(NAME in_memory_redis_tests COMMAND in_memory_redis_tests)
