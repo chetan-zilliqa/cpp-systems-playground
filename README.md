@@ -4,32 +4,36 @@ A hands-on C++ monorepo designed to practice **systems programming fundamentals*
 
 * custom memory allocation
 * in-memory data structures
-* hash tables & caching
+* hash tables (chaining + open addressing)
+* caching
+* RAII + smart pointers
 * modular CMake builds
 * concurrency
 * logging
 * unit testing
 
-This repository contains multiple small but realistic projects that build on each other, moving from fundamentals (memory) to increasingly advanced data systems (KV stores & caches).
+This repository contains multiple realistic projects that build on each other — moving from memory allocators to hash maps, KV stores, caching, and pointer semantics.
 
 ---
 
 ## 📦 Modules Overview
 
-| Module             | Description                                                                            |
-| ------------------ | -------------------------------------------------------------------------------------- |
-| `common/`          | Shared utilities (logging)                                                             |
-| `memory_pool/`     | Fixed-block allocator for efficient small allocations                                  |
-| `hash_map/`        | Custom separate-chaining HashMap (replacing `std::unordered_map` in dependent modules) |
-| `kv_store/`        | In-memory key/value store backed by `memory_pool` (optimized, TTL support)             |
-| `lru_cache/`       | Modern LRU cache built using our custom `hash_map` + `std::list`                       |
-| `in_memory_redis/` | Redis-style key-value store with prefix query + TTL expiry + background sweeper        |
+| Module               | Description                                                                   |
+| -------------------- | ----------------------------------------------------------------------------- |
+| `common/`            | Shared utilities (logging)                                                    |
+| `memory_pool/`       | Fixed-block allocator for efficient small allocations                         |
+| `hash_map/`          | Custom separate-chaining HashMap (replaces `std::unordered_map`)              |
+| `kv_store_chaining/` | Key/value store using chaining + memory_pool                                  |
+| `kv_store_linear/`   | Key/value store using open addressing + inline fixed buffers (cache-friendly) |
+| `lru_cache/`         | Modern LRU cache built using `hash_map` + `std::list`                         |
+| `in_memory_redis/`   | Redis-style store with TTL, prefix queries & background sweeper               |
+| `smart_pointers/`    | Custom RAII smart pointers (`UniquePtr`, `SharedPtr`, `WeakPtr`)              |
 
 Each module:
 
 * is self-contained
 * exports a library target
-* has a demo executable
+* has a demo
 * has unit tests
 
 ---
@@ -39,66 +43,53 @@ Each module:
 ```
 cpp-systems-playground/
 │
-├── CMakeLists.txt              # root cmake project
+├── CMakeLists.txt
 │
-├── common/                     # logging, shared utilities
-│   ├── include/common/logging.hpp
-│   ├── tests/common_logging_tests.cpp
-│   └── README.md
+├── common/                     
+├── memory_pool/                
+├── hash_map/
 │
-├── memory_pool/                # fixed-block allocator
-│   ├── include/memory_pool/fixed_block_memory_pool.hpp
-│   ├── tests/memory_pool_tests.cpp
-│   └── README.md
+├── kv_store_chaining/          # chaining + memory pool
+├── kv_store_linear/            # open addressing / linear probing
 │
-├── hash_map/                   # custom hash table
-│   ├── include/hash_map/hash_map.hpp
-│   ├── src/main.cpp
-│   ├── tests/hash_map_tests.cpp
-│   └── README.md
+├── lru_cache/
 │
-├── kv_store/                   # memory-pool backed kv store
-│   ├── include/kv_store/kv_store.hpp
-│   ├── src/main.cpp
-│   ├── tests/kv_store_tests.cpp
-│   └── README.md
+├── in_memory_redis/
 │
-├── lru_cache/                  # LRU cache using custom HashMap
-│   ├── include/lru_cache/lru_cache.hpp
-│   ├── src/main.cpp
-│   ├── tests/lru_cache_tests.cpp
-│   └── README.md
+├── smart_pointers/
 │
-├── in_memory_redis/            # Redis-like TTL + prefix + sweeper
-│   ├── include/redis/...
-│   ├── tests/redis_tests.cpp
-│   └── README.md
-│
-└── build/                      # cmake build directory (ignored by git)
+└── build/
 ```
+
+### Differences between KV store modules:
+
+| Module              | Collision Handling | Allocation Model | Value Storage     | Best For            |
+| ------------------- | ------------------ | ---------------- | ----------------- | ------------------- |
+| `kv_store_chaining` | Separate chaining  | memory pool      | dynamic           | flexible workloads  |
+| `kv_store_linear`   | Open addressing    | contiguous array | fixed-size inline | high cache locality |
 
 ---
 
 ## ⚙️ Build Instructions
 
-### Configure (from root)
+Configure:
 
 ```bash
 cmake -S . -B build
 ```
 
-### Build all
+Build all:
 
 ```bash
 cmake --build build -j
 ```
 
-### Build a specific component
+Build a specific module (examples):
 
 ```bash
-cmake --build build --target hash_map_demo
-cmake --build build --target lru_cache_demo
-cmake --build build --target kv_store_demo
+cmake --build build --target kv_store_chaining_demo
+cmake --build build --target kv_store_linear_demo
+cmake --build build --target smart_pointers_demo
 ```
 
 ---
@@ -107,64 +98,47 @@ cmake --build build --target kv_store_demo
 
 ```bash
 ./build/hash_map/hash_map_demo
+./build/kv_store_chaining/kv_store_chaining_demo
+./build/kv_store_linear/kv_store_linear_demo
 ./build/lru_cache/lru_cache_demo
-./build/kv_store/kv_store_demo
+./build/smart_pointers/smart_pointers_demo
 ```
 
 ---
 
 ## 🧪 Unit Testing
 
-Integrated using **CTest**.
+Run all tests:
 
 ```bash
 cd build
 ctest --output-on-failure
 ```
 
-Example individual runs:
+Examples:
 
 ```bash
-./build/hash_map/hash_map_tests
-./build/lru_cache/lru_cache_tests
-./build/memory_pool/memory_pool_tests
-./build/kv_store/kv_store_tests
+./build/kv_store_linear/kv_store_linear_tests
+./build/kv_store_chaining/kv_store_chaining_tests
+./build/smart_pointers/smart_pointers_tests
 ```
 
-Tests use `assert()` and are dependency-free, fast, and deterministic.
+Tests are small, assert-driven, and dependency-free (except Redis tests may use gtest).
 
 ---
 
-## 🌟 Learning Goals
-
-This repository aims to teach:
-
-* designing custom containers (`HashMap`)
-* eviction & caching policies (`LRU`)
-* memory management (`fixed_block_memory_pool`)
-* building decentralized modules
-* clean CMake & modular dependencies
-* profiling and optimization mindset
-* testing systems components in isolation
-
-By combining them, we explore real-world systems challenges:
-
-**efficiency, cache locality, TTL expiry, eviction, custom allocators.**
-
----
 
 ## 🚧 Future Enhancements
 
-Planned additions:
+Next possible modules:
 
-* PMR-compatible hashmap + LRU
-* lock-free memory pool variant
-* benchmark suite (Google Benchmark)
-* MVCC or snapshot support in KV
-* WAL/persistence layer for redis module
-* sharded hash map & LRU for multithreading
-* LFU/ARC adaptive cache policy
-* serialization & IPC transports
+* thread-safe `hash_map` & `lru_cache`
+* robin-hood / quadratic probing version of `kv_store_linear`
+* PMR-backed allocators for all structures
+* persistence layer / WAL for Redis
+* lock-free queue or stack
+* bloom filter for key existence
+* benchmarking suite
 
 ---
 
@@ -173,17 +147,17 @@ Planned additions:
 Contributions welcome:
 
 * performance optimizations
-* tests & benchmarking
-* design improvements
-* memory allocator experiments
-* new modules (allocator, cache, db, etc.)
+* lock-free variations
+* testing & benchmarking
+* more data structures
+* allocator experiments
 
-This is a playground — break things, learn, experiment.
+This playground is a space to explore, break, optimize, and learn.
 
 ---
 
 ## 📄 License
 
-MIT — free to modify and learn from.
+MIT — free to use, modify, and learn from.
 
 ---
