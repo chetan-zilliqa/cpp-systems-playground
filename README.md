@@ -42,6 +42,33 @@ Each module:
 
 ---
 
+## 📋 Module Dependency Graph
+
+```
+common (logging utilities)
+  ├─ memory_pool (allocators)
+  │  └─ kv_store_chaining
+  │     └─ (application layer)
+  │
+  ├─ hash_map (chaining-based)
+  │  ├─ kv_store_chaining
+  │  └─ lru_cache
+  │     └─ in_memory_redis
+  │
+  ├─ kv_store_linear (independent)
+  ├─ smart_pointers (RAII utilities)
+  ├─ lock_free_queue (concurrency)
+  └─ thread_pool (concurrency)
+```
+
+**Dependency Rules:**
+- `common` ← base layer (no dependencies)
+- Foundation layer ← `common` only
+- Application layer ← Foundation + others as needed
+- Concurrency (`lock_free_queue`, `thread_pool`) ← `common` only (no cross-dependencies)
+
+---
+
 ## 🧩 Monorepo Structure
 
 ```

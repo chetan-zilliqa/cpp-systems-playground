@@ -39,7 +39,7 @@ public:
           size_(0),
           hash_(hash),
           eq_(eq),
-          max_load_factor_(0.75f)
+          max_load_factor_(0.75)
     {}
 
     HashMap(const HashMap&)            = delete;
@@ -74,18 +74,18 @@ public:
     [[nodiscard]] size_type size() const noexcept { return size_; }
     [[nodiscard]] size_type bucket_count() const noexcept { return buckets_.size(); }
 
-    [[nodiscard]] float load_factor() const noexcept
+    [[nodiscard]] double load_factor() const noexcept
     {
         return bucket_count() == 0
-            ? 0.0f
-            : static_cast<float>(size_) / static_cast<float>(bucket_count());
+            ? 0.0
+            : static_cast<double>(size_) / static_cast<double>(bucket_count());
     }
 
-    [[nodiscard]] float max_load_factor() const noexcept { return max_load_factor_; }
+    [[nodiscard]] double max_load_factor() const noexcept { return max_load_factor_; }
 
-    void max_load_factor(float lf)
+    void max_load_factor(double lf)
     {
-        if (lf <= 0.0f) {
+        if (lf <= 0.0) {
             throw std::invalid_argument("max_load_factor must be > 0");
         }
         max_load_factor_ = lf;
@@ -152,6 +152,11 @@ public:
         return false;
     }
 
+    [[nodiscard]] size_type count(const Key& key) const
+    {
+        return contains(key) ? 1 : 0;
+    }
+
     // returns a *copy* of the stored value (fine for iterator types as well)
     [[nodiscard]] std::optional<T> get(const Key& key) const
     {
@@ -164,6 +169,51 @@ public:
             }
         }
         return std::nullopt;
+    }
+
+    // Returns reference to value; throws if key not found
+    T& at(const Key& key)
+    {
+        const auto idx = bucket_index(key);
+        auto& bucket = buckets_[idx];
+
+        for (auto& node : bucket) {
+            if (eq_(node.key, key)) {
+                return node.value;
+            }
+        }
+        throw std::out_of_range("Key not found in HashMap");
+    }
+
+    const T& at(const Key& key) const
+    {
+        const auto idx = bucket_index(key);
+        const auto& bucket = buckets_[idx];
+
+        for (const auto& node : bucket) {
+            if (eq_(node.key, key)) {
+                return node.value;
+            }
+        }
+        throw std::out_of_range("Key not found in HashMap");
+    }
+
+    // Returns reference to value; inserts default value if key not found
+    T& operator[](const Key& key)
+    {
+        const auto idx = bucket_index(key);
+        auto& bucket = buckets_[idx];
+
+        for (auto& node : bucket) {
+            if (eq_(node.key, key)) {
+                return node.value;
+            }
+        }
+
+        bucket.push_front(Node{key, T{}});
+        ++size_;
+        maybe_rehash();
+        return bucket.front().value;
     }
 
 private:
@@ -182,7 +232,7 @@ private:
 
         bucket.push_front(Node{std::forward<K>(key), std::forward<V>(value)});
         ++size_;
-        maybe_rehash_if_last_insert();
+        maybe_rehash();
         return true; // inserted
     }
 
@@ -193,14 +243,6 @@ private:
     }
 
     void maybe_rehash()
-    {
-        if (load_factor() > max_load_factor_) {
-            const auto new_bucket_count = bucket_count() * 2;
-            rehash(new_bucket_count ? new_bucket_count : kDefaultBucketCount);
-        }
-    }
-
-    void maybe_rehash_if_last_insert()
     {
         if (load_factor() > max_load_factor_) {
             const auto new_bucket_count = bucket_count() * 2;
@@ -234,7 +276,7 @@ private:
     size_type size_;
     Hash      hash_;
     KeyEqual  eq_;
-    float     max_load_factor_;
+    double    max_load_factor_;
 };
 
 } // namespace hash_map

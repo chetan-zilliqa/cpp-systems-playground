@@ -17,3 +17,8 @@ add_subdirectory(lru_cache)
 add_subdirectory(smart_pointers)
 add_subdirectory(lock_free_queue)
 add_subdirectory(thread_pool)
+add_subdirectory(examples)
+
+# Note: integration_tests and benchmarks are WIP and commented out for now
+# add_subdirectory(integration_tests)
+# add_subdirectory(benchmarks)
